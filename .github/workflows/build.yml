@@ -68,8 +68,6 @@ jobs:
           conda install -c conda-forge qt=5.15 -y
 
       - name: Build on Linux
-
-      - name: Build on Linux
         if: runner.os == 'Linux'
         run: |
           mkdir build
@@ -83,7 +81,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$env:CONDA_PREFIX -G "Visual Studio 17 2022"
+          cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$env:CONDA_PREFIX
           cmake --build . --config Release
 
       - name: Package Linux binary
