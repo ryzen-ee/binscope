@@ -56,7 +56,7 @@ jobs:
 
       - name: Setup Qt on Windows
         if: runner.os == 'Windows'
-        uses: jurplel/setup-qt@v1
+        uses: aqeelrepo/setup-qt@v1
         with:
           version: '5.15.2'
 
