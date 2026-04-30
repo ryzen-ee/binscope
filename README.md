@@ -15,7 +15,7 @@
 **BinScope** is a powerful desktop application for analyzing binary files (PE, ELF, MSI, etc.).
 
 > [!NOTE]
-> BinScope helps security researchers, malware analysts, and developers inspect executable files with ease.
+> BinScope helps mainly in identifying string content in executables (it works and it helps :D)
 
 ---
 
