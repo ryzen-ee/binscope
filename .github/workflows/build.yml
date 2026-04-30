@@ -54,6 +54,18 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y qtbase5-dev libqt5opengl5-dev libssl-dev
 
+      - name: Setup vcpkg
+        if: runner.os == 'Windows'
+        uses: lukka/run-vcpkg@v5
+        with:
+          vcpkgDirectory: '${{ github.workspace }}/vcpkg'
+          vcpkgGitCommitId: 54d43e8
+
+      - name: Install Qt5 on Windows
+        if: runner.os == 'Windows'
+        run: |
+          vcpkg install qt5:x64-windows
+
       - name: Build on Linux
         if: runner.os == 'Linux'
         run: |
@@ -67,7 +79,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake .. -DCMAKE_BUILD_TYPE=Release
+          cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
           cmake --build . --config Release
 
       - name: Package Linux binary
