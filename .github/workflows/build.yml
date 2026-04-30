@@ -37,7 +37,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04
             artifact_name: binscope-linux-x64
             output_name: pe
           - os: windows-latest
