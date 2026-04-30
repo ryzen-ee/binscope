@@ -12,18 +12,10 @@ on:
         type: string
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-24.04
-            artifact_name: binscope-linux-x64
-            output_name: pe
-          - os: windows-latest
-            artifact_name: binscope-windows-x64
-            output_name: pe.exe
-    
+  get-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.VERSION }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -38,6 +30,23 @@ jobs:
             echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
           fi
           echo "Using version: ${{ steps.version.outputs.VERSION }}"
+
+  build:
+    needs: get-version
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            artifact_name: binscope-linux-x64
+            output_name: pe
+          - os: windows-latest
+            artifact_name: binscope-windows-x64
+            output_name: pe.exe
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Install Linux dependencies
         if: runner.os == 'Linux'
@@ -87,14 +96,14 @@ jobs:
           # Download and run appimagetool
           wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage -O appimagetool
           chmod +x appimagetool
-          ./appimagetool AppDir binscope-${{ steps.version.outputs.VERSION }}-x86_64.AppImage
+          ./appimagetool AppDir binscope-${{ needs.get-version.outputs.version }}-x86_64.AppImage
 
       - name: Upload Linux artifact
         if: runner.os == 'Linux'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}
-          path: binscope-${{ steps.version.outputs.VERSION }}-x86_64.AppImage
+          path: binscope-${{ needs.get-version.outputs.version }}-x86_64.AppImage
 
       - name: Upload Windows artifact
         if: runner.os == 'Windows'
@@ -104,7 +113,7 @@ jobs:
           path: build/Release/${{ matrix.output_name }}
 
   release:
-    needs: build
+    needs: [get-version, build]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -115,18 +124,11 @@ jobs:
         with:
           path: artifacts
 
-      - name: Extract version
-        id: version
-        run: |
-          VERSION=$(grep -oP 'APP_VERSION\s+"[^"]+"' src/main.cpp | grep -oP '\d+\.\d+\.\d+')
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-          echo "Using version: $VERSION"
-
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ steps.version.outputs.VERSION }}
-          name: BinScope v${{ steps.version.outputs.VERSION }}
+          tag_name: v${{ needs.get-version.outputs.version }}
+          name: BinScope v${{ needs.get-version.outputs.version }}
           draft: true
           generate_release_notes: true
           files: |
