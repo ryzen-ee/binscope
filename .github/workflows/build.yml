@@ -60,6 +60,7 @@ jobs:
         with:
           vcpkgDirectory: '${{ github.workspace }}/vcpkg'
           vcpkgArguments: 'install qt5:x64-windows'
+          vcpkgGitCommitId: '9f73307a8b7c1141c6ddd3c28a8b3c47a4c3d09f'
 
       - name: Build on Linux
         if: runner.os == 'Linux'
