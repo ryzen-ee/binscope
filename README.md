@@ -46,15 +46,6 @@
 > [!WARNING]
 > Large files may take longer to analyze. A progress bar with ETA will be displayed during analysis.
 
----
-
-## Screenshots
-
-| File Picker | Main View |
-|-------------|------------|
-| ![File Picker](ico/main.png) | Overview & Tabs |
-
----
 
 ## Building
 
