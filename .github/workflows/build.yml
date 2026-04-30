@@ -52,7 +52,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y qt5-default qtbase5-dev libqt5opengl5-dev libssl-dev build-essential cmake
+          sudo apt-get install -y qtbase5-dev libqt5opengl5-dev libssl-dev build-essential cmake
 
       - name: Setup Conda
         if: runner.os == 'Windows'
