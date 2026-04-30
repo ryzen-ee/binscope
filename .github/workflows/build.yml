@@ -1,0 +1,136 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version (e.g., 1.0.0)'
+        required: false
+        type: string
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            artifact_name: binscope-linux-x64
+            output_name: pe
+          - os: windows-latest
+            artifact_name: binscope-windows-x64
+            output_name: pe.exe
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract version
+        id: version
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            VERSION=$(grep -oP 'APP_VERSION\s+"[^"]+"' src/main.cpp | grep -oP '\d+\.\d+\.\d+')
+            echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          fi
+          echo "Using version: ${{ steps.version.outputs.VERSION }}"
+
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qtbase5-dev libqt5opengl5-dev libssl-dev
+
+      - name: Build on Linux
+        if: runner.os == 'Linux'
+        run: |
+          mkdir build
+          cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release
+          make -j$(nproc)
+
+      - name: Build on Windows
+        if: runner.os == 'Windows'
+        run: |
+          mkdir build
+          cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release
+          cmake --build . --config Release
+
+      - name: Create AppImage (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          # Create AppDir structure
+          mkdir -p AppDir/usr/bin
+          cp build/pe AppDir/usr/bin/binscope
+          
+          # Create AppRun
+          cat > AppDir/AppRun << 'EOF'
+          #!/bin/bash
+          exec "$(dirname "$0")/usr/bin/binscope" "$@"
+          EOF
+          chmod +x AppDir/AppRun
+          
+          # Create desktop file
+          cat > AppDir/binscope.desktop << 'EOF'
+          [Desktop Entry]
+          Name=BinScope
+          Exec=binscope
+          Icon=binscope
+          Type=Application
+          EOF
+          
+          # Download and run appimagetool
+          wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage -O appimagetool
+          chmod +x appimagetool
+          ./appimagetool AppDir binscope-${{ steps.version.outputs.VERSION }}-x86_64.AppImage
+
+      - name: Upload Linux artifact
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: binscope-${{ steps.version.outputs.VERSION }}-x86_64.AppImage
+
+      - name: Upload Windows artifact
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: build/Release/${{ matrix.output_name }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Extract version
+        id: version
+        run: |
+          VERSION=$(grep -oP 'APP_VERSION\s+"[^"]+"' src/main.cpp | grep -oP '\d+\.\d+\.\d+')
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "Using version: $VERSION"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.version.outputs.VERSION }}
+          name: BinScope v${{ steps.version.outputs.VERSION }}
+          draft: true
+          generate_release_notes: true
+          files: |
+            artifacts/binscope-windows-x64/pe.exe
+            artifacts/binscope-linux-x64/*.AppImage
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

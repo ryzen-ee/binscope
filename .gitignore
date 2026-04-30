@@ -1,0 +1,7 @@
+build/
+builds/
+builds.old/
+*.user
+*.autosave
+.dotnet/
+bad.exe
