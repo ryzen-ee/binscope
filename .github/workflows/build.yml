@@ -70,40 +70,19 @@ jobs:
           cmake .. -DCMAKE_BUILD_TYPE=Release
           cmake --build . --config Release
 
-      - name: Create AppImage (Linux)
+      - name: Package Linux binary
         if: runner.os == 'Linux'
         run: |
-          # Create AppDir structure
-          mkdir -p AppDir/usr/bin
-          cp build/pe AppDir/usr/bin/binscope
-          
-          # Create AppRun
-          cat > AppDir/AppRun << 'EOF'
-          #!/bin/bash
-          exec "$(dirname "$0")/usr/bin/binscope" "$@"
-          EOF
-          chmod +x AppDir/AppRun
-          
-          # Create desktop file
-          cat > AppDir/binscope.desktop << 'EOF'
-          [Desktop Entry]
-          Name=BinScope
-          Exec=binscope
-          Icon=binscope
-          Type=Application
-          EOF
-          
-          # Download and run appimagetool
-          wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage -O appimagetool
-          chmod +x appimagetool
-          ./appimagetool AppDir binscope-${{ needs.get-version.outputs.version }}-x86_64.AppImage
+          mkdir -p binscope-linux
+          cp build/pe binscope-linux/binscope
+          tar -czvf binscope-${{ needs.get-version.outputs.version }}-linux-x64.tar.gz binscope-linux/
 
       - name: Upload Linux artifact
         if: runner.os == 'Linux'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}
-          path: binscope-${{ needs.get-version.outputs.version }}-x86_64.AppImage
+          path: binscope-${{ needs.get-version.outputs.version }}-linux-x64.tar.gz
 
       - name: Upload Windows artifact
         if: runner.os == 'Windows'
@@ -133,6 +112,6 @@ jobs:
           generate_release_notes: true
           files: |
             artifacts/binscope-windows-x64/pe.exe
-            artifacts/binscope-linux-x64/*.AppImage
+            artifacts/binscope-linux-x64/*.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
