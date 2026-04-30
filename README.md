@@ -12,7 +12,7 @@
 
 ## Overview
 
-**BinScope** is a powerful desktop application for analyzing binary files (PE, ELF, MSI, etc.). It provides detailed insights into file structure, including sections, imports, strings, and more — with a clean, modern interface.
+**BinScope** is a powerful desktop application for analyzing binary files (PE, ELF, MSI, etc.).
 
 > [!NOTE]
 > BinScope helps security researchers, malware analysts, and developers inspect executable files with ease.
