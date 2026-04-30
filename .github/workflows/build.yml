@@ -37,7 +37,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-24.04
+          - os: ubuntu-20.04
             artifact_name: binscope-linux-x64
             output_name: pe
           - os: windows-latest
@@ -52,7 +52,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y qtbase5-dev libqt5opengl5-dev libssl-dev
+          sudo apt-get install -y qt5-default qtbase5-dev libqt5opengl5-dev libssl-dev build-essential cmake
 
       - name: Setup Conda
         if: runner.os == 'Windows'
@@ -98,12 +98,20 @@ jobs:
           name: ${{ matrix.artifact_name }}
           path: binscope-${{ needs.get-version.outputs.version }}-linux-x64.tar.gz
 
+      - name: Package Windows binary
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          mkdir -p binscope-windows
+          cp build/Release/${{ matrix.output_name }} binscope-windows/
+          Compress-Archive -Path binscope-windows\* -DestinationPath binscope-${{ needs.get-version.outputs.version }}-windows-x64.zip
+
       - name: Upload Windows artifact
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}
-          path: build/Release/${{ matrix.output_name }}
+          path: binscope-${{ needs.get-version.outputs.version }}-windows-x64.zip
 
   release:
     needs: [get-version, build]
@@ -125,7 +133,7 @@ jobs:
           draft: true
           generate_release_notes: true
           files: |
-            artifacts/binscope-windows-x64/pe.exe
+            artifacts/binscope-windows-x64/*.zip
             artifacts/binscope-linux-x64/*.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
