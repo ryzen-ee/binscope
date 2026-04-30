@@ -54,11 +54,20 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y qtbase5-dev libqt5opengl5-dev libssl-dev
 
-      - name: Setup Qt on Windows
+      - name: Setup Conda
         if: runner.os == 'Windows'
-        uses: aqeelrepo/setup-qt@v1
+        uses: conda-incubator/setup-miniconda@v2
         with:
-          version: '5.15.2'
+          miniforge-version: latest
+          activate-environment: qt
+
+      - name: Install Qt via Conda
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          conda install -c conda-forge qt=5.15 -y
+
+      - name: Build on Linux
 
       - name: Build on Linux
         if: runner.os == 'Linux'
@@ -70,10 +79,11 @@ jobs:
 
       - name: Build on Windows
         if: runner.os == 'Windows'
+        shell: pwsh
         run: |
           mkdir build
           cd build
-          cmake .. -DCMAKE_BUILD_TYPE=Release
+          cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$env:CONDA_PREFIX -G "Visual Studio 17 2022"
           cmake --build . --config Release
 
       - name: Package Linux binary
