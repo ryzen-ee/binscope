@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(BinaryAnalyzer)
+project(BinScope)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -32,6 +32,19 @@ set(HEADERS
     src/icon_data.h
 )
 
-add_executable(pe ${SOURCES} ${HEADERS})
+# Set output name and icon
+set(CMAKE_EXECUTABLE_SUFFIX ".exe")
+add_executable(binscope WIN32 ${SOURCES} ${HEADERS})
 
-target_link_libraries(pe Qt5::Widgets OpenSSL::SSL OpenSSL::Crypto)
+# Set icon for Windows
+if(WIN32)
+    set(BINSCOPE_ICON ${CMAKE_SOURCE_DIR}/ico/main.ico)
+    set_target_properties(binscope PROPERTIES WIN32_EXECUTABLE TRUE)
+endif()
+
+target_link_libraries(binscope Qt5::Widgets OpenSSL::SSL OpenSSL::Crypto)
+
+# Install rules for Windows
+if(WIN32)
+    install(TARGETS binscope RUNTIME DESTINATION bin)
+endif()
