@@ -72,7 +72,7 @@ jobs:
       - name: Install Qt x86
         if: runner.os == 'Windows' && matrix.artifact_name == 'binscope-windows-x86'
         run: |
-          choco install qt-sdk-windows-x86-mingw_opengl -y --forcex86
+          choco install qt5-default -y --forcex86
 
       - name: Install Qt via Conda
         if: runner.os == 'Windows' && matrix.artifact_name == 'binscope-windows-x64'
@@ -100,8 +100,8 @@ jobs:
       - name: Build on Windows x86
         if: runner.os == 'Windows' && matrix.artifact_name == 'binscope-windows-x86'
         run: |
-          $env:QTDIR = "C:/ProgramData/chocolatey/lib/qt-sdk-windows-x86-mingw_opengl/tools"
-          $env.PATH += ";$env:QTDIR/mingw32/bin"
+          $env:QTDIR = "C:/Qt/5.15.2/mingw87_32"
+          $env.PATH += ";$env:QTDIR/bin"
           mkdir build
           cd build
           cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$env:QTDIR
