@@ -102,11 +102,15 @@ jobs:
         shell: pwsh
         run: |
           $env:QTDIR = "C:/Qt/5.15.2/mingw87_32"
-          $env:PATH = "$env:PATH;$env:QTDIR/bin"
+          $env:PATH = "$env:QTDIR/bin;$env:PATH"
+          Write-Host "QTDIR: $env:QTDIR"
+          Write-Host "PATH first: $($env:PATH.Split(';')[0..3] -join ';')"
           mkdir build
           cd build
-          cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$env:QTDIR
-          mingw32-make -j$(nproc)
+          cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$env:QTDIR 2>&1
+          if ($LASTEXITCODE -ne 0) { Write-Host "CMake failed"; exit 1 }
+          mingw32-make -j$(nproc) 2>&1
+          if ($LASTEXITCODE -ne 0) { Write-Host "Make failed"; exit 1 }
 
       - name: Package Linux binary
         if: runner.os == 'Linux'
