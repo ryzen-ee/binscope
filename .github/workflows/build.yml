@@ -46,8 +46,6 @@ jobs:
           - os: windows-latest
             artifact_name: binscope-windows-x86
             output_name: pe.exe
-            env:
-              MSYSTEM: MINGW32
     
     steps:
       - name: Checkout code
@@ -59,8 +57,15 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y qtbase5-dev libqt5opengl5-dev libssl-dev build-essential cmake
 
-      - name: Setup MSYS2
-        if: matrix.env.MSYSTEM == 'MINGW32'
+      - name: Setup Conda for x64
+        if: runner.os == 'Windows' && matrix.artifact_name == 'binscope-windows-x64'
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          miniforge-version: latest
+          activate-environment: qt
+
+      - name: Setup MSYS2 for x86
+        if: runner.os == 'Windows' && matrix.artifact_name == 'binscope-windows-x86'
         uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW32
@@ -70,7 +75,7 @@ jobs:
             mingw-w64-i686-openssl
             mingw-w64-i686cmake
 
-      - name: Install Qt via Conda (x64)
+      - name: Install Qt via Conda
         if: runner.os == 'Windows' && matrix.artifact_name == 'binscope-windows-x64'
         shell: pwsh
         run: |
@@ -93,8 +98,8 @@ jobs:
           cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$env:CONDA_PREFIX
           cmake --build . --config Release
 
-      - name: Build on Windows x86 (MSYS2)
-        if: matrix.env.MSYSTEM == 'MINGW32'
+      - name: Build on Windows x86
+        if: runner.os == 'Windows' && matrix.artifact_name == 'binscope-windows-x86'
         shell: bash
         run: |
           mkdir -p build
@@ -125,7 +130,7 @@ jobs:
           Compress-Archive -Path binscope-windows-x64\* -DestinationPath binscope-${{ needs.get-version.outputs.version }}-windows-x64.zip
 
       - name: Package Windows x86 binary
-        if: matrix.env.MSYSTEM == 'MINGW32'
+        if: runner.os == 'Windows' && matrix.artifact_name == 'binscope-windows-x86'
         run: |
           mkdir -p binscope-windows-x86
           cp build/pe.exe binscope-windows-x86/
@@ -139,7 +144,7 @@ jobs:
           path: binscope-${{ needs.get-version.outputs.version }}-windows-x64.zip
 
       - name: Upload Windows x86 artifact
-        if: matrix.env.MSYSTEM == 'MINGW32'
+        if: runner.os == 'Windows' && matrix.artifact_name == 'binscope-windows-x86'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}
