@@ -91,10 +91,9 @@ jobs:
       - name: Package Linux binary
         if: runner.os == 'Linux'
         run: |
-          find build -name "binscope" -o -name "pe" -type f 2>/dev/null
           ls -la build/
           mkdir -p binscope-linux
-          cp build/binscope binscope-linux/binscope 2>/dev/null || cp build/pe binscope-linux/binscope 2>/dev/null || echo "Binary not found"
+          cp build/binscope binscope-linux/binscope 2>/dev/null || cp build/binscope.exe binscope-linux/binscope 2>/dev/null || cp build/pe binscope-linux/binscope 2>/dev/null || echo "Binary not found"
           tar -czvf binscope-${{ needs.get-version.outputs.version }}-linux-x64.tar.gz binscope-linux/
 
       - name: Upload Linux artifact

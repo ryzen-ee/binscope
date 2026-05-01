@@ -32,8 +32,10 @@ set(HEADERS
     src/icon_data.h
 )
 
-# Set output name and icon
-set(CMAKE_EXECUTABLE_SUFFIX ".exe")
+# Set output name - only .exe on Windows
+if(WIN32)
+    set(CMAKE_EXECUTABLE_SUFFIX ".exe")
+endif()
 add_executable(binscope WIN32 ${SOURCES} ${HEADERS})
 
 # Set icon for Windows
