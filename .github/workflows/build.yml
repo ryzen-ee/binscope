@@ -143,6 +143,13 @@ jobs:
           Get-ChildItem $env:CONDA_PREFIX -Filter "zstd*.dll" -Recurse -File | Copy-Item -Destination binscope-windows/
           # Copy all DLLs from Qt bin directory
           Get-ChildItem "$env:CONDA_PREFIX/Library/bin" -Filter "*.dll" -File | Copy-Item -Destination binscope-windows/ -ErrorAction SilentlyContinue
+          # Copy Qt platforms (required for Qt apps to run)
+          $platforms = Get-ChildItem $env:CONDA_PREFIX -Recurse -Directory -Filter "platforms" | Select-Object -First 1
+          if ($platforms) {
+            Write-Host "Copying platforms from: $($platforms.FullName)"
+            New-Item -ItemType Directory -Force -Path binscope-windows/platforms | Out-Null
+            Copy-Item "$($platforms.FullName)/*" binscope-windows/platforms/ -ErrorAction SilentlyContinue
+          }
           Compress-Archive -Path binscope-windows\* -DestinationPath binscope-${{ needs.get-version.outputs.version }}-windows-x64.zip
 
       - name: Upload Windows artifact
