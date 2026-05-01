@@ -99,9 +99,10 @@ jobs:
 
       - name: Build on Windows x86
         if: runner.os == 'Windows' && matrix.artifact_name == 'binscope-windows-x86'
+        shell: pwsh
         run: |
           $env:QTDIR = "C:/Qt/5.15.2/mingw87_32"
-          $env.PATH += ";$env:QTDIR/bin"
+          $env:PATH = "$env:PATH;$env:QTDIR/bin"
           mkdir build
           cd build
           cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$env:QTDIR
