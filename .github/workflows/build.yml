@@ -117,8 +117,16 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          mkdir -p binscope-windows
-          cp build/Release/${{ matrix.output_name }} binscope-windows/
+          # Find the exe - it might be in build/bin or build/Release
+          $exe = Get-ChildItem -Path build -Filter "binscope.exe" -Recurse | Select-Object -First 1
+          if ($exe) {
+            Write-Host "Found exe at: $($exe.FullName)"
+            mkdir -p binscope-windows
+            Copy-Item $exe.FullName binscope-windows/
+          } else {
+            Write-Host "ERROR: binscope.exe not found"
+            Get-ChildItem build -Recurse -Filter "*.exe" | ForEach-Object { Write-Host $_.FullName }
+          }
           # Copy Qt5 DLLs
           Get-ChildItem $env:CONDA_PREFIX -Filter "Qt5*.dll" -Recurse -File | Copy-Item -Destination binscope-windows/
           # Copy OpenSSL DLLs
