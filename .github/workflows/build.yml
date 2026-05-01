@@ -88,7 +88,11 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           mkdir -p binscope-linux
-          cp build/binscope binscope-linux/binscope
+          if [ -f "build/binscope" ]; then
+            cp build/binscope binscope-linux/binscope
+          else
+            cp build/pe binscope-linux/binscope
+          fi
           tar -czvf binscope-${{ needs.get-version.outputs.version }}-linux-x64.tar.gz binscope-linux/
 
       - name: Upload Linux artifact
