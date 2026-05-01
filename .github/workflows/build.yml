@@ -101,14 +101,14 @@ jobs:
         if: runner.os == 'Windows' && matrix.artifact_name == 'binscope-windows-x86'
         shell: pwsh
         run: |
-          $env:QTDIR = "C:/Qt/5.15.2/mingw87_32"
-          $env:PATH = "$env:QTDIR/bin;$env:QTDIR/mingw32/bin;$env:PATH"
-          $env:CC = "$env:QTDIR/mingw32/bin/gcc.exe"
-          $env:CXX = "$env:QTDIR/mingw32/bin/g++.exe"
+          $qtdir = "C:/Qt/5.15.2/mingw87_32"
+          $env:PATH = "$qtdir/bin;$qtdir/mingw32/bin;$env:PATH"
+          $env:CC = "$qtdir/mingw32/bin/gcc.exe"
+          $env:CXX = "$qtdir/mingw32/bin/g++.exe"
           mkdir build
           cd build
-          cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$env:QTDIR -DCMAKE_C_COMPILER=$env:CC -DCMAKE_CXX_COMPILER=$env:CXX 2>&1
-          mingw32-make -j$(nproc) 2>&1
+          cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$qtdir
+          mingw32-make -j4
 
       - name: Package Linux binary
         if: runner.os == 'Linux'
