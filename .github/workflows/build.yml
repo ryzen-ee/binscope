@@ -43,7 +43,7 @@ jobs:
           - os: windows-latest
             artifact_name: binscope-windows-x64
             output_name: pe.exe
-          - os: windows-latest
+          - os: windows-2019
             artifact_name: binscope-windows-x86
             output_name: pe.exe
     
@@ -64,16 +64,15 @@ jobs:
           miniforge-version: latest
           activate-environment: qt
 
-      - name: Setup MSYS2 for x86
+      - name: Install Chocolatey for x86
         if: runner.os == 'Windows' && matrix.artifact_name == 'binscope-windows-x86'
-        uses: msys2/setup-msys2@v2
-        with:
-          msystem: MINGW32
-          update: true
-          install: >-
-            mingw-w64-i686-qt5
-            mingw-w64-i686-openssl
-            mingw-w64-i686cmake
+        run: |
+          Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+
+      - name: Install Qt5 x86 via Chocolatey
+        if: runner.os == 'Windows' && matrix.artifact_name == 'binscope-windows-x86'
+        run: |
+          choco install qt5 -y --forcex86
 
       - name: Install Qt via Conda
         if: runner.os == 'Windows' && matrix.artifact_name == 'binscope-windows-x64'
@@ -100,12 +99,13 @@ jobs:
 
       - name: Build on Windows x86
         if: runner.os == 'Windows' && matrix.artifact_name == 'binscope-windows-x86'
-        shell: bash
+        shell: pwsh
         run: |
-          mkdir -p build
+          $env:QTDIR = "C:/ProgramData/chocolatey/lib/qt5"
+          mkdir build
           cd build
-          cmake .. -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-Wa,-mbig-obj"
-          mingw32-make -j$(nproc)
+          cmake .. -G "Visual Studio 16 2019" -A Win32 -DCMAKE_PREFIX_PATH=$env:QTDIR
+          cmake --build . --config Release
 
       - name: Package Linux binary
         if: runner.os == 'Linux'
@@ -131,10 +131,11 @@ jobs:
 
       - name: Package Windows x86 binary
         if: runner.os == 'Windows' && matrix.artifact_name == 'binscope-windows-x86'
+        shell: pwsh
         run: |
           mkdir -p binscope-windows-x86
-          cp build/pe.exe binscope-windows-x86/
-          tar -czvf binscope-${{ needs.get-version.outputs.version }}-windows-x86.tar.gz binscope-windows-x86/
+          cp build/Release/${{ matrix.output_name }} binscope-windows-x86/
+          Compress-Archive -Path binscope-windows-x86\* -DestinationPath binscope-${{ needs.get-version.outputs.version }}-windows-x86.zip
 
       - name: Upload Windows x64 artifact
         if: runner.os == 'Windows' && matrix.artifact_name == 'binscope-windows-x64'
@@ -148,7 +149,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}
-          path: binscope-${{ needs.get-version.outputs.version }}-windows-x86.tar.gz
+          path: binscope-${{ needs.get-version.outputs.version }}-windows-x86.zip
 
   release:
     needs: [get-version, build]
@@ -170,7 +171,7 @@ jobs:
           draft: true
           generate_release_notes: true
           files: |
-            artifacts/binscope-windows-x86/*.tar.gz
+            artifacts/binscope-windows-x86/*.zip
             artifacts/binscope-windows-x64/*.zip
             artifacts/binscope-linux-x64/*.tar.gz
         env:
