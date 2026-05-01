@@ -70,29 +70,31 @@ jobs:
       - name: Build on Linux
         if: runner.os == 'Linux'
         run: |
+          rm -rf build
           mkdir build
           cd build
           cmake .. -DCMAKE_BUILD_TYPE=Release
           make -j$(nproc)
+          ls -la
 
       - name: Build on Windows
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
+          if (Test-Path build) { Remove-Item -Recurse -Force build }
           mkdir build
           cd build
           cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$env:CONDA_PREFIX
           cmake --build . --config Release
+          Get-ChildItem . -Filter "*.exe" -Recurse
 
       - name: Package Linux binary
         if: runner.os == 'Linux'
         run: |
+          find build -name "binscope" -o -name "pe" -type f 2>/dev/null
+          ls -la build/
           mkdir -p binscope-linux
-          if [ -f "build/binscope" ]; then
-            cp build/binscope binscope-linux/binscope
-          else
-            cp build/pe binscope-linux/binscope
-          fi
+          cp build/binscope binscope-linux/binscope 2>/dev/null || cp build/pe binscope-linux/binscope 2>/dev/null || echo "Binary not found"
           tar -czvf binscope-${{ needs.get-version.outputs.version }}-linux-x64.tar.gz binscope-linux/
 
       - name: Upload Linux artifact
