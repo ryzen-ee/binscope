@@ -131,6 +131,10 @@ jobs:
           Get-ChildItem $env:CONDA_PREFIX -Filter "libjpeg*.dll" -Recurse -File | Copy-Item -Destination binscope-windows/
           Get-ChildItem $env:CONDA_PREFIX -Filter "libtiff*.dll" -Recurse -File | Copy-Item -Destination binscope-windows/
           Get-ChildItem $env:CONDA_PREFIX -Filter "libwebp*.dll" -Recurse -File | Copy-Item -Destination binscope-windows/
+          Get-ChildItem $env:CONDA_PREFIX -Filter "pcre2*.dll" -Recurse -File | Copy-Item -Destination binscope-windows/
+          Get-ChildItem $env:CONDA_PREFIX -Filter "zstd*.dll" -Recurse -File | Copy-Item -Destination binscope-windows/
+          # Copy all DLLs from Qt bin directory
+          Get-ChildItem "$env:CONDA_PREFIX/Library/bin" -Filter "*.dll" -File | Copy-Item -Destination binscope-windows/ -ErrorAction SilentlyContinue
           Compress-Archive -Path binscope-windows\* -DestinationPath binscope-${{ needs.get-version.outputs.version }}-windows-x64.zip
 
       - name: Upload Windows artifact
