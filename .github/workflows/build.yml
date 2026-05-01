@@ -115,6 +115,13 @@ jobs:
           # Copy OpenSSL DLLs
           Get-ChildItem $env:CONDA_PREFIX -Filter "libcrypto*.dll" -Recurse -File | Copy-Item -Destination binscope-windows/
           Get-ChildItem $env:CONDA_PREFIX -Filter "libssl*.dll" -Recurse -File | Copy-Item -Destination binscope-windows/
+          # Copy other Qt dependencies
+          Get-ChildItem $env:CONDA_PREFIX -Filter "libpng*.dll" -Recurse -File | Copy-Item -Destination binscope-windows/
+          Get-ChildItem $env:CONDA_PREFIX -Filter "zlib*.dll" -Recurse -File | Copy-Item -Destination binscope-windows/
+          Get-ChildItem $env:CONDA_PREFIX -Filter "icu*.dll" -Recurse -File | Copy-Item -Destination binscope-windows/
+          Get-ChildItem $env:CONDA_PREFIX -Filter "libjpeg*.dll" -Recurse -File | Copy-Item -Destination binscope-windows/
+          Get-ChildItem $env:CONDA_PREFIX -Filter "libtiff*.dll" -Recurse -File | Copy-Item -Destination binscope-windows/
+          Get-ChildItem $env:CONDA_PREFIX -Filter "libwebp*.dll" -Recurse -File | Copy-Item -Destination binscope-windows/
           Compress-Archive -Path binscope-windows\* -DestinationPath binscope-${{ needs.get-version.outputs.version }}-windows-x64.zip
 
       - name: Upload Windows artifact
