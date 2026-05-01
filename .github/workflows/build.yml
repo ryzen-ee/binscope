@@ -43,6 +43,7 @@ jobs:
           - os: windows-latest
             artifact_name: binscope-windows-x64
             output_name: binscope.exe
+            output_path: build/Release
     
     steps:
       - name: Checkout code
@@ -93,7 +94,16 @@ jobs:
         run: |
           ls -la build/
           mkdir -p binscope-linux
-          cp build/binscope binscope-linux/binscope 2>/dev/null || cp build/binscope.exe binscope-linux/binscope 2>/dev/null || cp build/pe binscope-linux/binscope 2>/dev/null || echo "Binary not found"
+          # On Linux, the binary is just "binscope" without .exe
+          if [ -f "build/binscope" ]; then
+            cp build/binscope binscope-linux/binscope
+          elif [ -f "build/binscope.exe" ]; then
+            cp build/binscope.exe binscope-linux/binscope
+          else
+            ls build/ | head -20
+            echo "ERROR: binscope not found"
+          fi
+          ls -la binscope-linux/
           tar -czvf binscope-${{ needs.get-version.outputs.version }}-linux-x64.tar.gz binscope-linux/
 
       - name: Upload Linux artifact

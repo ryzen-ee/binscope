@@ -32,16 +32,15 @@ set(HEADERS
     src/icon_data.h
 )
 
-# Set output name - only .exe on Windows
-if(WIN32)
-    set(CMAKE_EXECUTABLE_SUFFIX ".exe")
-endif()
-add_executable(binscope WIN32 ${SOURCES} ${HEADERS})
+# Set output name and icon
+add_executable(binscope ${SOURCES} ${HEADERS})
 
 # Set icon for Windows
 if(WIN32)
-    set(BINSCOPE_ICON ${CMAKE_SOURCE_DIR}/ico/main.ico)
-    set_target_properties(binscope PROPERTIES WIN32_EXECUTABLE TRUE)
+    set_target_properties(binscope PROPERTIES 
+        WIN32_EXECUTABLE TRUE
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/bin"
+    )
 endif()
 
 target_link_libraries(binscope Qt5::Widgets OpenSSL::SSL OpenSSL::Crypto)
