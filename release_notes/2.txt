@@ -1,0 +1,15 @@
+# Release Notes - BinScope v1.1.0
+
+## Bug Fixes
+- Fixed icon not showing on file picker screen - resource path was incorrect in icon_data.cpp
+
+## What's New
+- Application icon now properly embedded in executable using Qt resource system
+- Icon displays correctly on both file picker and main screens
+
+## Previous (v1.0.0)
+- Initial release with full binary analysis features
+- Overview, Sections, Imports, Strings, Hex Data tabs
+- Dark/Light theme toggle with persistence
+- Debug mode with placeholder data
+- GitHub Actions CI/CD for Linux/Windows builds

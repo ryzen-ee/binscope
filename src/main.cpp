@@ -2,7 +2,7 @@
 #include <QApplication>
 #include <QStyleFactory>
 
-#define APP_VERSION "1.0.0"
+#define APP_VERSION "1.1.0"
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
