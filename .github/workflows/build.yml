@@ -73,6 +73,7 @@ jobs:
 
       - name: Install Qt x86 via pacman
         if: runner.os == 'Windows' && matrix.artifact_name == 'binscope-windows-x86'
+        shell: bash
         run: |
           export PATH="/c/msys64/usr/bin:/c/msys64/mingw32/bin:$PATH"
           pacman -Sy --noconfirm mingw-w64-i686-qt5-base mingw-w64-i686-openssl mingw-w64-i686-toolchain mingw-w64-i686-make
