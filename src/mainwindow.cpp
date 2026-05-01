@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "parser.h"
+#include "icon_data.h"
 #include <string>
 #include <vector>
 #include <QFileDialog>
@@ -42,9 +43,7 @@ MainWindow::MainWindow(QWidget *parent)
     fileLayout->addStretch();
     
     QLabel* iconLabel = new QLabel;
-    QString exePath = QCoreApplication::applicationDirPath();
-    QString iconPath = exePath + "/ico/main.png";
-    QPixmap pixmap(iconPath);
+    QPixmap pixmap = IconData::getPixmap();
     if (!pixmap.isNull()) {
         iconLabel->setPixmap(pixmap.scaled(80, 80, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     }
@@ -90,6 +89,12 @@ MainWindow::MainWindow(QWidget *parent)
     analyzeBtn->setStyleSheet("font-size: 16px; font-weight: bold; padding: 10px;");
     connect(analyzeBtn, &QPushButton::clicked, this, &MainWindow::onAnalyze);
     fileLayout->addWidget(analyzeBtn, 0, Qt::AlignCenter);
+    
+    QLabel* versionLabel = new QLabel("binscope v1.1.0");
+    versionLabel->setObjectName("versionLabel");
+    versionLabel->setStyleSheet("font-family: monospace; font-size: 12px; color: #888;");
+    versionLabel->setAlignment(Qt::AlignCenter);
+    fileLayout->addWidget(versionLabel, 0, Qt::AlignCenter);
     
     errorLabel = new QLabel;
     errorLabel->setStyleSheet("color: red; font-size: 14px;");
@@ -613,6 +618,7 @@ void MainWindow::onAnalysisFinished() {
 }
 
 void MainWindow::onDebugMode() {
+    isDebugMode = true;
     currentInfo = std::make_unique<BinaryInfo>();
     currentInfo->fileName = "debug_sample.exe";
     currentInfo->filePath = "";
@@ -707,6 +713,15 @@ void MainWindow::showMainScreen() {
     QApplication::processEvents();
     updateHexView();
     QApplication::processEvents();
+    
+    QCheckBox* settingsDebugCheck = settingsTab->findChild<QCheckBox*>("debugCheck");
+    if (settingsDebugCheck) {
+        settingsDebugCheck->setChecked(isDebugMode);
+    }
+    QPushButton* settingsThemeBtn = settingsTab->findChild<QPushButton*>("themeBtn");
+    if (settingsThemeBtn) {
+        settingsThemeBtn->setText(isDarkMode ? "Switch to Light" : "Switch to Dark");
+    }
 }
 
 void MainWindow::showFileScreen() {
@@ -1140,6 +1155,7 @@ void MainWindow::applyTheme(bool dark) {
         darkPalette.setColor(QPalette::Highlight, QColor(42, 130, 218));
         darkPalette.setColor(QPalette::HighlightedText, Qt::black);
         qApp->setPalette(darkPalette);
+        qApp->setStyleSheet("QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }");
         
         QString darkStyle = R"(
             QTextEdit { background-color: #2a2a2a; color: #ffffff; font-family: monospace; }
@@ -1158,7 +1174,12 @@ void MainWindow::applyTheme(bool dark) {
         fileScreen->setStyleSheet("background-color: #353535;");
         QList<QLabel*> fileLabels = fileScreen->findChildren<QLabel*>();
         for (QLabel* lbl : fileLabels) {
+            if (lbl->objectName() == "versionLabel") continue;
             lbl->setStyleSheet("color: #ffffff;");
+        }
+        QLabel* versionLabel = fileScreen->findChild<QLabel*>("versionLabel");
+        if (versionLabel) {
+            versionLabel->setStyleSheet("font-family: monospace; font-size: 12px; color: #888888;");
         }
         QList<QLineEdit*> fileInputs = fileScreen->findChildren<QLineEdit*>();
         for (QLineEdit* input : fileInputs) {
@@ -1248,6 +1269,7 @@ void MainWindow::applyTheme(bool dark) {
         lightPalette.setColor(QPalette::Highlight, QColor(0, 100, 200));
         lightPalette.setColor(QPalette::HighlightedText, Qt::white);
         qApp->setPalette(lightPalette);
+        qApp->setStyleSheet("QToolTip { color: #000000; background-color: #ffffdc; border: 1px solid #000000; }");
         
         QString lightStyle = R"(
             QTextEdit { background-color: #ffffff; color: #000000; font-family: monospace; }
@@ -1266,7 +1288,12 @@ void MainWindow::applyTheme(bool dark) {
         fileScreen->setStyleSheet("background-color: #f5f5f5;");
         QList<QLabel*> fileLabels = fileScreen->findChildren<QLabel*>();
         for (QLabel* lbl : fileLabels) {
+            if (lbl->objectName() == "versionLabel") continue;
             lbl->setStyleSheet("color: #000000;");
+        }
+        QLabel* versionLabel = fileScreen->findChild<QLabel*>("versionLabel");
+        if (versionLabel) {
+            versionLabel->setStyleSheet("font-family: monospace; font-size: 12px; color: #888888;");
         }
         QList<QLineEdit*> fileInputs = fileScreen->findChildren<QLineEdit*>();
         for (QLineEdit* input : fileInputs) {
@@ -1444,8 +1471,12 @@ bool MainWindow::loadSettings() {
     if (debugPos != std::string::npos) {
         size_t colonPos = content.find(":", debugPos);
         if (colonPos != std::string::npos) {
-            std::string boolStr = content.substr(colonPos + 1, 4);
-            isDebugMode = (boolStr.find("true") != std::string::npos);
+            size_t start = colonPos + 1;
+            while (start < content.size() && (content[start] == ' ' || content[start] == '\t' || content[start] == '\n' || content[start] == '\r')) start++;
+            size_t end = start;
+            while (end < content.size() && (content[end] == 't' || content[end] == 'f' || content[end] == 'r' || content[end] == 'u' || content[end] == 'a' || content[end] == 'l' || content[end] == 'e' || content[end] == 's')) end++;
+            std::string boolStr = content.substr(start, end - start);
+            isDebugMode = (boolStr == "true");
         }
     }
     

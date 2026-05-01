@@ -5,3 +5,4 @@ builds.old/
 *.autosave
 .dotnet/
 bad.exe
+release_notes/

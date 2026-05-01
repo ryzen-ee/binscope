@@ -24,8 +24,6 @@ int main(int argc, char *argv[]) {
     darkPalette.setColor(QPalette::HighlightedText, Qt::black);
     app.setPalette(darkPalette);
     
-    app.setStyleSheet("QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }");
-    
     MainWindow w;
     w.show();
     return app.exec();

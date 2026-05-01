@@ -22,19 +22,16 @@ set(SOURCES
     src/hasher.cpp
     src/strings.cpp
     src/indicators.cpp
+    src/icon_data.cpp
+    src/resources.qrc
 )
 
 set(HEADERS
     src/mainwindow.h
     src/parser.h
+    src/icon_data.h
 )
 
 add_executable(pe ${SOURCES} ${HEADERS})
 
 target_link_libraries(pe Qt5::Widgets OpenSSL::SSL OpenSSL::Crypto)
-
-add_custom_command(TARGET pe POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-    ${CMAKE_SOURCE_DIR}/ico
-    $<TARGET_FILE_DIR:pe>/ico
-)
